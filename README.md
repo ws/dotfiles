@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal dotfiles managed with [chezmoi](https://chezmoi.io). I am only using on MacOS machine currently, but I plan to migrate to Linux eventually, so _theoretically_ everything should be setup for both.
+Personal dotfiles managed with [chezmoi](https://chezmoi.io). I am only using on MacOS machines currently, but I plan to migrate to Linux eventually, so _theoretically_ everything should be setup for both.
 
 New Mac setup is documented in [MACOS_SETUP.md](MACOS_SETUP.md).
 
