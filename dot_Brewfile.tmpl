@@ -1,0 +1,117 @@
+{{ if not .machine.role }}
+{{ fail "machine.role is not set; define it in ~/.config/chezmoi.yml" }}
+{{ end }}
+
+{{ $role := .machine.role }}
+
+# ============================================================================
+# COMMON (all platforms)
+# ============================================================================
+
+# Meta
+tap "buo/cask-upgrade" # Gives topgrade the ability to upgrade casks
+
+# --- Development Tools ---
+brew "chezmoi"     # Manage your dotfiles across multiple diverse machines
+brew "cmake"       # Cross-platform make
+brew "gh"          # GitHub command-line tool
+brew "git"         # Distributed revision control system
+brew "git-lfs"     # Git extension for versioning large files
+brew "gnupg"       # GNU Privacy Guard (OpenPGP)
+brew "mise"        # Polyglot runtime manager (asdf rust clone)
+brew "sqlite"      # Command-line interface for SQLite
+
+# --- CLI Utilities ---
+brew "eza"         # Modern, maintained replacement for ls
+brew "fzf"         # Command-line fuzzy finder written in Go
+brew "grep"        # GNU grep, egrep and fgrep
+brew "jq"          # Lightweight and flexible command-line JSON processor
+brew "topgrade"    # Upgrade all the things
+brew "tree"        # Display directories as trees
+brew "wget"        # Internet file retriever
+brew "zoxide"      # Shell extension to navigate your filesystem faster
+
+# --- Media & Graphics ---
+brew "ffmpeg"      # Play, record, convert, and stream audio and video
+brew "ghostscript" # Interpreter for PostScript and PDF
+brew "imagemagick" # Tools and libraries to manipulate images
+brew "mozjpeg"     # Improved JPEG encoder
+
+# --- Backup ---
+brew "restic"      # Fast, efficient and secure backup program
+
+# ============================================================================
+# macOS ONLY
+# ============================================================================
+{{- if eq .chezmoi.os "darwin" }}
+
+  # --- macOS Utilities ---
+  brew "duti"        # Select default apps for documents and URL schemes
+  brew "mas"         # Mac App Store command-line interface
+
+  {{ if eq $role "personal" }}
+  # ==========================================================================
+  # PERSONAL MACHINE
+  # ==========================================================================
+
+    # --- AI Tools ---
+    cask "chatgpt"                   # OpenAI ChatGPT desktop app
+    cask "claude"                    # Claude AI desktop app
+    cask "claude-code"               # Terminal-based AI coding assistant
+    cask "codex"                     # OpenAI coding agent for terminal
+    cask "cursor"                    # AI-powered code editor
+
+    # --- Development ---
+    cask "ghostty"                   # Terminal emulator
+    cask "github"                    # Desktop client for GitHub repositories
+    cask "iterm2"                    # Terminal emulator
+    cask "tableplus"                 # Native GUI tool for relational databases
+    cask "visual-studio-code"        # Open-source code editor
+    cask "utm"                       # Virtualization tool for macOS (used for testing this repo)
+
+    # --- Productivity ---
+    cask "1password"                 # Password manager
+    cask "1password-cli"             # Command-line interface for 1Password
+    cask "jordanbaird-ice@beta"      # Menu bar icon organiser (OSS Bartender replacement)
+    cask "cleanshot"                 # Screen capturing tool
+    cask "daisydisk"                 # Disk space visualiser
+    cask "espanso"                   # Cross-platform Text Expander (Rust)
+    cask "hyperkey"                  # Convert caps lock to hyper key
+    cask "keka"                      # File archiver
+    cask "kekaexternalhelper"        # I despise MacOS
+    cask "keyboardcleantool"         # Lock keyboard for cleaning
+    cask "maccy"                     # Clipboard manager
+    cask "modern-csv"                # CSV editor
+    cask "rectangle"                 # Move and resize windows
+    cask "todoist-app"               # To-do list
+
+    # --- Communication ---
+    cask "tailscale-app"             # Mesh VPN based on WireGuard
+    cask "telegram"                  # Messaging app
+    cask "windows-app"               # Connect to Windows
+
+    # --- Media ---
+    cask "iina"                      # Free and open-source media player
+    cask "imageoptim"                # Tool to optimise images
+    cask "spotify"                   # Music streaming service
+
+    # --- Creative ---
+    cask "adobe-creative-cloud"      # Adobe Creative Cloud
+    cask "prusaslicer"               # G-code generator for 3D printers
+
+    # --- Web ---
+    cask "google-chrome"             # Web browser
+
+    # --- Fonts ---
+    cask "font-hack-nerd-font"       # Font with icons
+
+    # --- Mac App Store ---
+    mas "Brother P-touch Editor", id: 1453365242 # Label maker
+    mas "Xcode", id: 497799835
+
+    {{ if eq .machine.type "laptop" }}
+        mas "Amphetamine", id: 937984704 # Keep your Mac awake
+    {{- end }}
+
+  {{- end }}
+{{- end }}

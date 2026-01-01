@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor directories
+.vscode/
+.idea/
+
+# chezmoi local state
+.chezmoistate
+
+# Private/local configuration
+*.local
+*.private
+.chezmoidata.local.yaml
+.chezmoidata.local.toml
+
+# Local espanso expansions (per-machine)
+espanso-local.yml

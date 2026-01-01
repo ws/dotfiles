@@ -1,0 +1,23 @@
+# espanso match file - Utility triggers
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/espanso/espanso/dev/schemas/match.schema.json
+
+matches:
+  # Get public IP address
+  - trigger: ":ip"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: "curl -s 'https://api.ipify.org'"
+
+  # Get local IP address (cross-platform: macOS and Linux)
+  - trigger: ":localip"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: "ipconfig getifaddr $(route get default 2>/dev/null | grep interface | awk '{print $2}') 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || ip route get 1 2>/dev/null | awk '{print $7}' | head -1"
+

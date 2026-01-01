@@ -1,0 +1,14 @@
+[tools]
+bun = "latest"
+deno = "latest"
+just = "latest"
+node = "latest"
+python = "latest"
+ruby = "3.4"
+rust = "latest"
+uv = "latest"
+watchexec = "latest"
+go = "latest"
+
+[settings]
+experimental = true

@@ -1,0 +1,18 @@
+.DS_Store
+**/.DS_Store
+
+README.md
+MACOS_SETUP.md
+
+{{- if eq .chezmoi.os "darwin" }}
+# Ignore Linux-specific paths on macOS
+.config/Code/
+.config/Cursor/
+.config/espanso
+{{- else }}
+# Ignore macOS-specific paths on Linux
+Library/
+{{- end }}
+
+# Source directories that are symlinked to platform-specific locations
+espanso/

@@ -1,0 +1,52 @@
+# completion
+autoload -Uz compinit
+compinit
+
+# history
+setopt HIST_IGNORE_DUPS # Don't record a command if it's identical to the previous command
+setopt SHARE_HISTORY # Share history across all zsh sessions
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='nano'
+else
+  export EDITOR='code -w'
+fi
+export VISUAL='code'
+
+# sane globbing
+setopt EXTENDED_GLOB
+setopt GLOB_DOTS
+
+# keybindings
+bindkey -e
+
+# mise (dev tools, etc)
+eval "$(mise activate zsh)"
+
+# zoxide (replacement for autojump)
+eval "$(zoxide init zsh)"
+alias j="z" # Muscle memory from autojump
+
+# too many oopsies
+del() {
+  command /bin/rm "$@"
+}
+
+rm() {
+  echo "'trash' is preferred; Use 'del' or '/bin/rm' if you must hard delete"
+  return 1
+}
+
+t() {
+  command trash "$@"
+}
+
+# fzf (fuzzy search history with ctrl+r)
+source <(fzf --zsh)
+
+# fzf-tab (use fzf for completion)
+autoload -U compinit; compinit
+source ~/.local/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh

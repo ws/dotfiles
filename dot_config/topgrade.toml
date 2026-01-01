@@ -1,0 +1,2 @@
+[misc]
+disable = ["chezmoi"] # Topgrade tries to run self-update mechanism despite it being installed via Brew

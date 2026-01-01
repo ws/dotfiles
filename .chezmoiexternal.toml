@@ -1,0 +1,4 @@
+[".local/share/zsh/plugins/fzf-tab"]
+    type = "git-repo"
+    url = "https://github.com/Aloxaf/fzf-tab"
+    refreshPeriod = "720h" # 30d

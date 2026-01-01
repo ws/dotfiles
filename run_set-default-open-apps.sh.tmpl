@@ -1,0 +1,113 @@
+{{- if eq .chezmoi.os "darwin" -}}
+
+#!/usr/bin/env zsh
+# (MacOS only)
+# Set default apps for file extensions
+
+# Check for required tools
+missing=()
+command -v duti &>/dev/null || missing+=(duti)
+command -v jq &>/dev/null || missing+=(jq)
+if (( ${#missing[@]} > 0 )); then
+  echo "⚠️  ${(j: and :)missing} not found, skipping. If this is not a fresh install, something has gone wrong."
+  exit 0
+fi
+
+FAVORITE_EDITOR="com.microsoft.VSCode"
+FAVORITE_BROWSER="com.google.Chrome"
+
+declare -A APP_NAMES=(
+  ["com.microsoft.VSCode"]="Visual Studio Code"
+  ["com.google.Chrome"]="Google Chrome"
+)
+
+declare -A EXT_TO_APP=(
+  # Code extensions (uses FAVORITE_EDITOR)
+  ["js"]="$FAVORITE_EDITOR"
+  ["ts"]="$FAVORITE_EDITOR"
+  ["jsx"]="$FAVORITE_EDITOR"
+  ["tsx"]="$FAVORITE_EDITOR"
+  ["css"]="$FAVORITE_EDITOR"
+  ["scss"]="$FAVORITE_EDITOR"
+  ["less"]="$FAVORITE_EDITOR"
+  ["json"]="$FAVORITE_EDITOR"
+  ["yaml"]="$FAVORITE_EDITOR"
+  ["yml"]="$FAVORITE_EDITOR"
+  ["xml"]="$FAVORITE_EDITOR"
+  ["md"]="$FAVORITE_EDITOR"
+  ["sh"]="$FAVORITE_EDITOR"
+  ["py"]="$FAVORITE_EDITOR"
+  ["c"]="$FAVORITE_EDITOR"
+  ["cpp"]="$FAVORITE_EDITOR"
+  ["h"]="$FAVORITE_EDITOR"
+  ["hpp"]="$FAVORITE_EDITOR"
+  ["java"]="$FAVORITE_EDITOR"
+  ["go"]="$FAVORITE_EDITOR"
+  ["rs"]="$FAVORITE_EDITOR"
+  ["php"]="$FAVORITE_EDITOR"
+  ["sql"]="$FAVORITE_EDITOR"
+  ["lua"]="$FAVORITE_EDITOR"
+  ["toml"]="$FAVORITE_EDITOR"
+  ["ini"]="$FAVORITE_EDITOR"
+  ["dockerfile"]="$FAVORITE_EDITOR"
+  ["gitignore"]="$FAVORITE_EDITOR"
+  ["env"]="$FAVORITE_EDITOR"
+)
+
+declare -A CHANGED_BY_APP
+declare -A CURRENT_HANDLERS
+
+# Read browser's current http handler from Launch Services plist
+LS_PLIST="$HOME/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
+current_browser=""
+if [[ -f "$LS_PLIST" ]]; then
+  current_browser=$(plutil -convert json -o - "$LS_PLIST" 2>/dev/null | jq -r '
+    .LSHandlers[]? | select(.LSHandlerURLScheme == "http") | .LSHandlerRoleAll // empty
+  ')
+fi
+
+# Set default browser (if not already set)
+if [[ "${current_browser:l}" != "${FAVORITE_BROWSER:l}" ]]; then
+  if duti -s "$FAVORITE_BROWSER" http viewer 2>/dev/null; then
+    echo "✅ Set ${APP_NAMES[$FAVORITE_BROWSER]} as the default browser"
+  else
+    echo "⚠️  Failed to set default browser"
+  fi
+fi
+
+# Check all current extension handlers in parallel
+tmpdir=$(mktemp -d)
+for ext in "${(k)EXT_TO_APP[@]}"; do
+  (duti -x "$ext" 2>/dev/null | sed -n '3p' > "$tmpdir/$ext") &
+done
+wait
+
+# Read results
+for ext in "${(k)EXT_TO_APP[@]}"; do
+  CURRENT_HANDLERS[$ext]=$(<"$tmpdir/$ext")
+done
+rm -rf "$tmpdir"
+
+# Set only what needs changing
+for ext in "${(k)EXT_TO_APP[@]}"; do
+  bundle_id="${EXT_TO_APP[$ext]}"
+  [[ "${CURRENT_HANDLERS[$ext]}" == "$bundle_id" ]] && continue
+
+  if duti -s "$bundle_id" ".$ext" all 2>/dev/null; then
+    CHANGED_BY_APP[$bundle_id]+=" $ext"
+  else
+    echo "⚠️  Failed to set ${APP_NAMES[$bundle_id]} as default for .$ext"
+  fi
+done
+
+# Print success messages only if something changed
+for bundle_id in "${(k)CHANGED_BY_APP[@]}"; do
+  app_name="${APP_NAMES[$bundle_id]}"
+  extensions="${CHANGED_BY_APP[$bundle_id]}"
+  echo "✅ Set $app_name as the default for:"
+  for ext in $extensions; do
+    echo "  • .$ext"
+  done
+done
+
+{{- end -}}
