@@ -10,5 +10,8 @@ uv = "latest"
 watchexec = "latest"
 go = "latest"
 
+# Idiomatically this should probably be installed by Brew but it's not on Brew so
+"cargo:image-optimizer" = "latest"
+
 [settings]
 experimental = true
