@@ -10,10 +10,7 @@
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/espanso/espanso/dev/schemas/match.schema.json
 
-# Local machine-specific expansions (not tracked in git)
-# Create ~/espanso-local.yml on each machine for work/personal specific snippets
-imports:
-  - "~/espanso-local.yml"
+# TODO: Local espanso expansions are currently broken
 
 matches:
   # Simple text replacement

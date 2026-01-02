@@ -130,7 +130,7 @@ You may see a warning about `duti` not being installed if you run this before st
 
 Preferences are defined declaratively in TOML files under `macos/defaults/`. Python scripts in `utils/` read these configs and apply them via `defaults write`. Chezmoi orchestrates everything via scripts in `.chezmoiscripts/macos/`.
 
-To customize settings, edit the TOML files:
+To customize settings, edit the TOML files in `macos/`:
 
 ```
 macos/
@@ -230,15 +230,7 @@ cursor --install-extension <extension-id>
 
 Should work automatically via chezmoi symlinks.
 
-**For machine-specific snippets** (not tracked in git):
-
-```bash
-cat > ~/espanso-local.yml << 'EOF'
-matches:
-  - trigger: ":email"
-    replace: "you@example.com"
-EOF
-```
+> **Note:** Local machine-specific snippets (`~/espanso-local.yml`) are currently broken due to espanso not expanding `~` or `$HOME` in imports when reading from a symlinked config.
 
 ---
 

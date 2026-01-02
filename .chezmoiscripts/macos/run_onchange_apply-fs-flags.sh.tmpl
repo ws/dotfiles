@@ -1,9 +1,0 @@
-{{- if eq .chezmoi.os "darwin" -}}
-#!/usr/bin/env bash
-# (MacOS only)
-# Apply filesystem flags from fs-flags.toml
-# hash: {{ include "macos/fs-flags.toml" | sha256sum }}
-
-python3 "${CHEZMOI_SOURCE_DIR}/utils/macos-apply-fs-flags.py" "${CHEZMOI_SOURCE_DIR}/macos/fs-flags.toml"
-
-{{- end -}}

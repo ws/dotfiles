@@ -1,0 +1,12 @@
+.DS_Store
+**/.DS_Store
+
+{{- if eq .chezmoi.os "darwin" }}
+# Ignore Linux-specific paths on macOS
+.config/Code/
+.config/Cursor/
+.config/espanso
+{{- else }}
+# Ignore macOS-specific paths on Linux
+Library/
+{{- end }}

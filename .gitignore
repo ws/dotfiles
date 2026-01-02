@@ -16,4 +16,4 @@
 .chezmoidata.local.toml
 
 # Local espanso expansions (per-machine)
-espanso-local.yml
+espanso/match/local.yml
