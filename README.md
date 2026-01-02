@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal dotfiles managed with [chezmoi](https://chezmoi.io). I am only using on MacOS machines currently, but I plan to migrate to Linux eventually, so _theoretically_ everything should be setup for both.
+Personal dotfiles managed with [chezmoi](https://chezmoi.io). Currently macOS only, but structured for eventual Linux support.
 
 New Mac setup is documented in [MACOS_SETUP.md](MACOS_SETUP.md).
 
@@ -41,20 +41,26 @@ topgrade
 
 ```
 ~/.local/share/chezmoi/
-├── .chezmoiexternal.toml      # External git repos (fzf-tab)
-├── .chezmoiignore              # Platform-specific ignore patterns
-├── dot_*                       # Files → ~/.*
-├── Library/                    # macOS app configs
-├── dot_config/                 # Linux app configs (.config/)
-├── espanso/                    # Shared, symlinked per-platform
-├── vscode/                     # Shared VSCode/Cursor settings
-├── dot_setup/                  # Setup scripts & docs
-└── run_*.sh.tmpl              # Scripts that run on `chezmoi apply`
+├── .chezmoiroot               # Points chezmoi to home/
+├── home/                      # Source files → ~/
+│   ├── .chezmoiexternal.toml  # External git repos (fzf-tab)
+│   ├── .chezmoiignore         # Platform-specific ignores
+│   ├── .chezmoiscripts/       # Scripts run on `chezmoi apply`
+│   ├── dot_*                  # Files → ~/.*
+│   ├── dot_config/            # → ~/.config/
+│   └── Library/               # → ~/Library/ (macOS)
+├── espanso/                   # Symlink target (shared config)
+├── vscode/                    # Symlink target (shared config)
+├── macos/                     # Declarative macOS preferences
+│   ├── defaults/              # App preferences (TOML)
+│   ├── default-apps.toml      # File associations
+│   └── fs-flags.toml          # Filesystem flags
+└── utils/                     # Python scripts for applying configs
 ```
 
 ### Configuration Data
 
-Create `~/.config/chezmoi/chezmoi.yaml` with:
+Create `~/.config/chezmoi/chezmoi.yaml`:
 
 ```yaml
 data:
@@ -66,7 +72,7 @@ data:
     type: "laptop"    # or "desktop"
 ```
 
-Required for templates to render. The Brewfile and other `.tmpl` files use these values.
+Required for templates. The Brewfile and other `.tmpl` files use these values.
 
 ### Platform Handling
 
@@ -74,210 +80,125 @@ Required for templates to render. The Brewfile and other `.tmpl` files use these
 - macOS: `~/Library/Application Support/`
 - Linux: `~/.config/`
 
-**The Solution**: Maintain both `Library/` and `dot_config/` directories with platform-conditional symlinks.
+**The Solution**: Source files live at repo root (`vscode/`, `espanso/`), with platform-conditional symlinks in `home/`.
 
 ```
 vscode/settings.json  ← Single source of truth
                       ↓
-macOS:  Library/Application Support/Code/User/settings.json  → symlink
-Linux:  .config/Code/User/settings.json                      → symlink
+macOS:  ~/Library/Application Support/Code/User/settings.json  → symlink
+Linux:  ~/.config/Code/User/settings.json                      → symlink
 ```
 
-Each `symlink_*.tmpl` file contains platform-conditional logic:
-- macOS version points to source on darwin
-- Linux version points to source on linux
-- Opposite platform gets ignored via `.chezmoiignore`
-
 **To edit VSCode/Cursor/Espanso configs**: Edit files in `vscode/` or `espanso/`, not the symlinks.
+
+## macOS Preferences
+
+Preferences are defined declaratively in TOML and applied automatically on `chezmoi apply`.
+
+### How It Works
+
+```
+macos/defaults/*.toml  →  utils/macos-apply-defaults.py  →  defaults write
+```
+
+Each TOML file defines preferences for one app:
+
+```toml
+description = "Finder"
+kill = ["Finder"]  # Restart after applying
+
+[data."com.apple.finder"]
+AppleShowAllFiles = true
+FXDefaultSearchScope = "SCcf"
+```
+
+### Adding New Preferences
+
+1. Create `macos/defaults/myapp.toml`
+2. Find the domain: `defaults domains | tr ',' '\n' | grep -i myapp`
+3. Read current settings: `defaults read com.example.myapp`
+4. Run `chezmoi apply`
+
+### Debugging
+
+```bash
+# Dry-run (see what would change)
+python3 utils/macos-apply-defaults.py macos/defaults/ --dry-run -v
+
+# Verbose apply
+python3 utils/macos-apply-defaults.py macos/defaults/ -vv
+```
 
 ## Package Management
 
 ### System Packages (Homebrew)
 
-**File**: `dot_Brewfile.tmpl`
+**File**: `home/dot_Brewfile.tmpl`
 
-Organized by:
-- Common (all platforms)
-- macOS only (`{{- if eq .chezmoi.os "darwin" }}`)
-- Personal role only (`{{ if eq $role "personal" }}`)
-- Laptop only (`{{ if eq .machine.type "laptop" }}`)
+Organized by platform/role/machine type with chezmoi conditionals.
 
 ```bash
-# Install/update all packages
-brew bundle --global
+brew bundle --global          # Install all
+brew bundle cleanup --global  # Remove unlisted
 ```
-
-**To add a package**: Edit `dot_Brewfile.tmpl` in the appropriate section, then `chezmoi apply && brew bundle --global`.
 
 ### Dev Tools (mise)
 
-**File**: `dot_config/mise/config.toml`
-
-Manages runtime versions for Node, Python, Ruby, Rust, Go, etc.
+**File**: `home/dot_config/mise/config.toml`
 
 ```bash
-# Install/update all tools
-mise install
-
-# Add new tool
-mise use -g node@latest
-
-# Check versions
-mise current
+mise install      # Install all tools
+mise use -g node  # Add new tool
+mise current      # Check versions
 ```
-
-**To add a tool**: Either `mise use -g <tool>` (auto-updates config) or edit `dot_config/mise/config.toml` directly.
 
 ### External Dependencies
 
-**File**: `.chezmoiexternal.toml`
+**File**: `home/.chezmoiexternal.toml`
 
-Currently manages:
-- `fzf-tab` zsh plugin
-
-```bash
-# Update external repos
-chezmoi update
-```
-
-**To add external deps**: Add to `.chezmoiexternal.toml`, see [chezmoi docs](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiexternal-format/).
-
-## Scripts & Automation
-
-### Run Scripts
-
-Scripts prefixed with `run_` execute on `chezmoi apply`:
-
-- `run_set-default-open-apps.sh.tmpl` (macOS) - Sets default apps for file extensions via `duti`
-
-**To add auto-run scripts**: Create `run_*.sh.tmpl` or `run_once_*.sh` (one-time) or `run_onchange_*.sh` (when hash changes).
-
-### Setup Scripts
-
-**Location**: `dot_setup/scripts/macos/`
-
-Manual setup scripts for app preferences (not auto-run):
-
-- `executable_set-macos-prefs.sh` - Finder, Dock, keyboard shortcuts
-- `executable_set-rectangle-prefs.sh` - Window manager shortcuts
-- `executable_set-maccy-prefs.sh` - Clipboard manager
-- `executable_set-hyperkey-prefs.sh` - Caps Lock → Hyper key
-- `executable_set-amphetamine-prefs.sh` - Keep-awake app
-- `executable_set-cleanshot-prefs.sh` - Screenshot tool
-
-**Why not auto-run?** Some prefs require the app to be closed, or need user review first.
-
-**To run**: `~/.setup/scripts/macos/set-macos-prefs.sh` (chezmoi makes them executable).
-
-### Setup Guide
-
-**Location**: `MACOS_SETUP.md`
-
-Complete fresh Mac setup walkthrough including manual app configuration (Ice, Chrome, VSCode extensions, etc).
+Currently manages fzf-tab. Update with `chezmoi update`.
 
 ## Common Tasks
 
-### Update a System Preference
+### Add a New macOS Preference
 
-**Example**: Change a Finder setting
-
-1. Edit `dot_setup/scripts/macos/executable_set-macos-prefs.sh`
-2. `chezmoi apply` (makes it executable in `~/.setup/`)
-3. Run: `~/.setup/scripts/macos/set-macos-prefs.sh`
-
-### Add a New Homebrew Package
-
-1. Edit `dot_Brewfile.tmpl`, add in appropriate section
-2. `chezmoi apply && brew bundle --global`
-
-Or just `brew install foo` then `chezmoi add ~/.Brewfile` to sync.
+1. Edit or create `macos/defaults/<app>.toml`
+2. `chezmoi apply`
 
 ### Add a New Dotfile
 
 ```bash
 chezmoi add ~/.config/some-app/config.yaml
-# Creates: dot_config/some-app/config.yaml
-
-# Or edit directly
-chezmoi edit ~/.config/some-app/config.yaml
 ```
 
 ### Update VSCode/Cursor Settings
 
 1. Edit `vscode/settings.json` or `vscode/keybindings.json`
-2. `chezmoi apply` (re-creates symlinks if needed)
-
-VSCode and Cursor share the same configs via symlinks.
+2. `chezmoi apply`
 
 ### Update Espanso Snippets
 
-**Shared snippets** (tracked in git):
-1. Edit `espanso/match/base.yml` or `espanso/match/utils.yml`
-2. `chezmoi apply`
-3. Espanso auto-reloads
+Edit `espanso/match/base.yml` or `espanso/match/utils.yml`, then `chezmoi apply`.
 
-**Local/machine-specific snippets** (not tracked):
-1. Create `~/espanso-local.yml` if it doesn't exist (see `espanso/espanso-local.yml.example`)
-2. Add your work/personal specific snippets
-3. Espanso auto-reloads
-
-The local file is imported by `base.yml` but gitignored, so you can have different snippets on each machine (work vs personal).
-
-### Change Shell Configuration
-
-```bash
-chezmoi edit ~/.zshrc
-# Auto-applies, reload with: source ~/.zshrc
-```
+> **Note:** Local machine-specific snippets are currently broken.
 
 ## Shell Features
 
-### Aliases & Functions
+### Aliases
 
-- `j` → `z` (zoxide jump, muscle memory from autojump)
+- `j` → `z` (zoxide jump)
 - `t` → `trash` (safe delete)
-- `del` or `/bin/rm` → hard delete (use sparingly)
-- `rm` → disabled (prevents accidents)
+- `rm` → disabled (use `del` or `/bin/rm` for hard delete)
 
 ### Integrated Tools
 
-- **fzf**: Fuzzy finder for history (Ctrl+R), completion
-- **zoxide**: Smart directory jumping (`z <partial-name>`)
+- **fzf**: Fuzzy finder (Ctrl+R for history)
+- **zoxide**: Smart directory jumping (`z <partial>`)
 - **mise**: Dev tool version management
 - **eza**: Modern `ls` replacement
 
-### Environment
-
-- Editor: `code -w` (VSCode, wait mode)
-- Visual: `code`
-- SSH sessions: `nano`
-
 ## Maintenance
 
-### Keep Everything Updated
-
 ```bash
-topgrade
-```
-
-This updates:
-- Homebrew packages (formulae and casks)
-- mise tools
-- System software
-- And more
-
-Config: `dot_config/topgrade.toml` (disables chezmoi self-update since it's Brew-managed).
-
-### Sync Changes Back
-
-After editing files directly in `~`:
-
-```bash
-chezmoi re-add
-# Reviews which tracked files changed, adds them back
-```
-
-Or manually:
-```bash
-chezmoi add ~/.zshrc
+topgrade  # Updates everything (Homebrew, mise, system, etc.)
 ```
