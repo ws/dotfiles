@@ -1,5 +1,33 @@
-# completion
 autoload -Uz compinit
+
+PROMPT='%~ %# '
+
+# Use a selectable menu when multiple matches exist (arrow keys, no auto-cycling)
+zstyle ':completion:*' menu select
+
+# Try: expansion -> normal completion -> spelling correction -> approximate matches (in that order)
+zstyle ':completion:*' completer _expand _complete _correct _approximate
+
+# Show section headers (e.g. "directories", "commands") in blue
+zstyle ':completion:*:descriptions' format '%F{blue}%d%f'
+
+# Group matches by type instead of mixing them
+zstyle ':completion:*' group-name ''
+
+# Show extra context (useful when matches look similar)
+zstyle ':completion:*' verbose yes
+
+# Treat // as / during path completion
+zstyle ':completion:*' squeeze-slashes true
+
+# Cache expensive completions (git, ssh, brew, etc.)
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zcompcache
+
+# Add a fallback matcher that treats upper/lowercase letters as equivalent for all completion contexts
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Initialize the completion system and apply the zstyle rules above
 compinit
 
 # history
