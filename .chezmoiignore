@@ -1,8 +1,19 @@
 .DS_Store
 **/.DS_Store
 
+# Docs don't need to get copied to ~/
 README.md
 MACOS_SETUP.md
+
+# Neither do utils (these are mostly just declarative->imperative helpers)
+utils/
+
+# Source directories that are symlinked to platform-specific locations
+espanso/
+vscode/
+
+# Declarative macOS-specific configs
+macos/
 
 {{- if eq .chezmoi.os "darwin" }}
 # Ignore Linux-specific paths on macOS
@@ -13,6 +24,3 @@ MACOS_SETUP.md
 # Ignore macOS-specific paths on Linux
 Library/
 {{- end }}
-
-# Source directories that are symlinked to platform-specific locations
-espanso/

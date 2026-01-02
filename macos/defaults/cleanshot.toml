@@ -1,0 +1,14 @@
+# CleanShot X - Screenshots how Apple should have built them
+# https://cleanshot.com/
+#
+# Manual steps:
+# - Enter license key (stored in 1Password)
+# - Grant screen recording permissions when prompted
+
+description = "CleanShot X"
+
+[data."com.getcleanshot.app"]
+captureWithoutDesktopIcons = true  # Hide desktop icons in screenshots
+analyticsAllowed = false
+SUEnableAutomaticChecks = false  # Managed via Homebrew
+lastAcceptedEulaVersion = 100

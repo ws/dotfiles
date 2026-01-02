@@ -1,0 +1,8 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# (MacOS only)
+# Set default applications for file extensions and URL schemes
+
+python3 "${CHEZMOI_SOURCE_DIR}/utils/macos-apply-default-apps.py" "${CHEZMOI_SOURCE_DIR}/macos/default-apps.toml"
+
+{{- end -}}

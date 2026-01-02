@@ -1,0 +1,14 @@
+# Maccy clipboard manager
+# https://maccy.app/
+#
+# Manual steps:
+# - General > Enable "Launch at login"
+# - Appearance > Set "Popup at" preference
+# - System Settings > Notifications > Enable for Maccy
+
+description = "Maccy clipboard manager"
+
+[data."org.p0deje.Maccy"]
+SUEnableAutomaticChecks = false  # Disable automatic update checks (managed via Homebrew)
+searchMode = "fuzzy"
+historySize = 50

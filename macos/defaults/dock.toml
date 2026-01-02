@@ -1,0 +1,8 @@
+description = "Dock"
+kill = ["Dock"]
+
+[data."com.apple.dock"]
+orientation = "bottom"
+autohide = true
+autohide-time-modifier = 0.5
+autohide-delay = 0

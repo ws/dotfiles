@@ -1,0 +1,8 @@
+description = "Finder"
+kill = ["Finder"]
+
+[data."com.apple.finder"]
+AppleShowAllFiles = true
+AppleShowAllExtensions = true
+FXDefaultSearchScope = "SCcf"  # Default to searching current folder
+FXEnableExtensionChangeWarning = false  # Don't nag about changing a file's extension

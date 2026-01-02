@@ -1,0 +1,19 @@
+# Hyperkey - Caps Lock → Hyper (⌃⌥⌘⇧)
+# https://hyperkey.app/
+#
+# Manual steps:
+# - Grant accessibility permissions when prompted
+# - Ensure "Open on login" is checked
+# - Check "Hide menu bar icon" (defaults write doesn't seem to work)
+
+description = "Hyperkey"
+kill = ["Hyperkey"]
+
+[data."com.knollsoft.Hyperkey"]
+SUEnableAutomaticChecks = 0  # Disable automatic checks (managed via Homebrew)
+capsLockRemapped = 2  # Remap caps lock to hyper key
+keyRemap = 1
+executeQuickHyperKey = 1  # Allow holding caps to use caps
+showMenuBarIcon = 0  # Hide menu bar icon (DOES NOT SEEM TO WORK)
+
+# launchOnLogin = 1  # Launch on login (I suspect this is actually just the UI flag, hence not setting it anymore)

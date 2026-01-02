@@ -1,8 +1,8 @@
 # Fresh Mac Setup Guide
 
-Some setup steps cannot be reliably run unattended - usually due to macOS restrictions/quirks or apps' reliance on inbuilt sync/cloud mechanisms. This guide walks through everything manually.
+Most macOS and app preferences are now applied automatically via `chezmoi apply`. This guide covers the full setup process, including the manual steps that can't be automated.
 
-Expect to accept a lot of accessibility and screen recording prompts.
+Expect to accept accessibility and screen recording prompts along the way.
 
 ---
 
@@ -14,13 +14,11 @@ Expect to accept a lot of accessibility and screen recording prompts.
 | 2. Homebrew | Install package manager |
 | 3. Chezmoi | Configure and initialize dotfiles |
 | 4. Brew bundle | Install all apps |
-| 5. 1Password | Sign in, enable CLI |
-| 6. macOS prefs | System preferences via script |
-| 7. App prefs | Per-app preference scripts |
-| 8. Dev runtimes | mise install |
-| 9. Manual setup | Ice, Chrome, VSCode extensions |
-| 10. xcode-select | Configure after Xcode finishes |
-| 11. Final checks | Verify everything works |
+| 5. Apply dotfiles | `chezmoi apply` (auto-configures most prefs) |
+| 6. Manual setup | Permissions, login items, app-specific |
+| 7. Dev runtimes | mise install |
+| 8. xcode-select | Configure after Xcode finishes |
+| 9. Final checks | Verify everything works |
 
 ---
 
@@ -32,7 +30,7 @@ Xcode is ~12GB. Start this first so it downloads in the background.
 open "https://apps.apple.com/us/app/xcode/id497799835"
 ```
 
-You'll configure xcode-select at the end (step 10) after it finishes installing.
+You'll configure xcode-select at the end (step 9) after it finishes installing.
 
 ---
 
@@ -44,7 +42,7 @@ You'll configure xcode-select at the end (step 10) after it finishes installing.
 
 This also downloads and installs Xcode Command Line Tools and accepts the license.
 
-**Temporarily Add Homebrew to PATH:**
+**Temporarily add Homebrew to PATH:**
 
 ```bash
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -94,23 +92,11 @@ chezmoi init <your-dotfiles-repo-url>
 
 ## 4. Install All Packages
 
-First apply chezmoi to get the Brewfile:
-
-```bash
-chezmoi apply
-```
-
-This will also install [fzf-tab](https://github.com/Aloxaf/fzf-tab) (via .chezmoiexternal)
-
-You may get a warning about `duti` not being installed yet, don't worry about it.
-
-Then install everything:
-
 ```bash
 brew bundle --global --verbose
 ```
 
-This takes a while. ☕
+This takes a while.
 
 You will have to babysit to type in your password several times, which is apparently [intended functionality](https://github.com/Homebrew/brew/issues/1293).
 
@@ -124,164 +110,98 @@ and try again. It's not a bad idea to run that command once you're finished inst
 
 ---
 
-## 5. Configure 1Password
-
-This is needed before the CleanShot script (which reads the license key from 1Password).
-
-### Sign In
-
-1. Open **1Password.app**
-2. Sign in to your account
-
-### Enable CLI Integration
-
-1. 1Password → Settings → Developer
-2. Enable **"Integrate with 1Password CLI"**
-
-See: https://developer.1password.com/docs/cli/get-started/#step-2-turn-on-the-1password-desktop-app-integration
-
-**Verify CLI works:**
+## 5. Apply Dotfiles
 
 ```bash
-op account get
-# Should show your account info
+chezmoi apply
+```
+
+This does a lot of work automatically:
+
+- Installs shell plugins (fzf-tab via `.chezmoiexternal`)
+- **Applies macOS system preferences** (Finder, Dock, keyboard shortcuts)
+- **Applies app preferences** (Hyperkey, Rectangle, Maccy, CleanShot, Amphetamine)
+- **Sets default apps** for file types and URLs (via duti)
+- **Sets filesystem flags** (e.g., unhides ~/Library)
+
+You may see a warning about `duti` not being installed if you run this before step 4. That's fine - just run `chezmoi apply` again after brew bundle.
+
+### How It Works
+
+Preferences are defined declaratively in TOML files under `macos/defaults/`. Python scripts in `utils/` read these configs and apply them via `defaults write`. Chezmoi orchestrates everything via scripts in `.chezmoiscripts/macos/`.
+
+To customize settings, edit the TOML files:
+
+```
+macos/
+├── defaults/
+│   ├── finder.toml      # Finder behavior
+│   ├── dock.toml        # Dock settings
+│   ├── hotkeys.toml     # Keyboard shortcuts
+│   ├── hyperkey.toml    # Hyperkey config
+│   ├── rectangle.toml   # Window management
+│   ├── maccy.toml       # Clipboard manager
+│   ├── cleanshot.toml   # Screenshot tool
+│   ├── amphetamine.toml # Keep-awake utility
+│   └── general.toml     # System-wide settings
+├── default-apps.toml    # File associations
+└── fs-flags.toml        # Filesystem attributes
 ```
 
 ---
 
-## 6. macOS System Preferences
+## 6. Manual App Setup
 
-```bash
-~/.setup/scripts/macos/set-macos-prefs.sh
-```
+These steps can't be automated due to macOS restrictions or app limitations.
 
-**Sets:**
-- **Finder:** Show hidden files, show extensions, show ~/Library, search current folder, no .DS_Store on network/USB
-- **Dock:** Bottom, auto-hide, fast animations
-- **Keyboard:** Disables default screenshot shortcuts (CleanShot replaces them)
+### Accessibility Permissions
 
----
+Grant accessibility access when prompted for:
+- **Hyperkey** - needed for Caps Lock remapping
+- **Rectangle** - needed for window management
+- **Espanso** - needed for text expansion
 
-## 7. App Preference Scripts
+### Screen Recording Permission
 
-Run these in order (some depend on others).
+Grant screen recording access when prompted for:
+- **CleanShot** - needed for screenshots
 
-### 7a. Hyperkey
+### Rectangle First Launch
 
-```bash
-~/.setup/scripts/macos/set-hyperkey-prefs.sh
-```
+When Rectangle first launches:
+1. Select **"Default keyboard shortcuts"** when prompted
+2. Select **"Disable macOS tiling"** when prompted
 
-**Run this before Rectangle** (Rectangle shortcuts use Hyper key).
+### Login Items
 
-**Sets:**
-- Caps Lock → Hyper (⌃⌥⌘⇧)
-- Hold Caps = actual Caps Lock
-- Launch on login
-- Hides menu bar icon
+Verify these are set to launch on login (System Settings → General → Login Items):
 
-Grant accessibility permissions when prompted.
+| App | How to Enable |
+|-----|---------------|
+| Hyperkey | Settings → "Open on login" |
+| Rectangle | Settings → "Open on login" |
+| Maccy | Preferences → General → "Launch at login" |
+| CleanShot | Prompts on first run |
+| Ice | Settings → General → "Launch at login" |
+| Espanso | Add manually to Login Items |
+| Amphetamine | Add manually (laptop only) |
 
-**⚠️ Manual steps required:**
-1. Ensure "Open on login" is checked.
-2. Check "Hide menu bar icon" (TODO: see why this isn't respecting `defaults write`)
+### Menu Bar Icons
 
-### 7b. Rectangle
-
-```bash
-~/.setup/scripts/macos/set-rectangle-prefs.sh
-```
-
-**Shortcuts:**
-| Shortcut | Action |
-|----------|--------|
-| `Hyper + ←` | Left half |
-| `Hyper + →` | Right half |
-| `Hyper + ↑` | Top half |
-| `Hyper + ↓` | Bottom half |
-| `Hyper + F` | Maximize |
-
-Grant accessibility permissions when prompted.
-
-Select default keyboard shortcuts when prompted (TODO: script this)
-
-Disable MacOS tiling when prompted (TODO: see if I can script this)
-
-**⚠️ Manual steps required:**
-1. Ensure General > "Open on login" is checked.
-2. Check General > "Hide menu bar icon" (TODO: see why this isn't respecting `defaults write`)
-
-### 7c. Maccy
-
-```bash
-~/.setup/scripts/macos/set-maccy-prefs.sh
-```
-
-**Sets:**
-- Fuzzy search
-- 50 item history
-
-**⚠️ Manual steps required:**
-1. Open Maccy preferences
-2. General → Enable **"Launch at login"**
-3. Appearance → Set **"Popup at"** preference
-3. Enable notifications in System Preferences
-
-### 7d. CleanShot
-
-```bash
-~/.setup/scripts/macos/set-cleanshot-prefs.sh
-```
-
-**Requires:** 1Password CLI configured (step 5)
-
-**Sets:**
-- License key from 1Password
-- Hide desktop icons in screenshots
-- Disables analytics
-- Accepts EULA
-
-Grant screen recording permissions when prompted.
-
-### 7e. Amphetamine (Laptop Only)
-
-```bash
-~/.setup/scripts/macos/set-amphetamine-prefs.sh
-```
-
-**Sets:**
-- Hides welcome window
-- Custom icon style
-- No Dock icon
-
----
-
-## 8. Install Dev Runtimes
-
-```bash
-mise install
-```
-
-**Verify:**
-
-```bash
-mise current
-node --version
-python --version
-```
-
----
-
-## 9. Manual App Setup
+Some apps don't respect `defaults write` for hiding menu bar icons. Set manually:
+- Hyperkey → Settings → "Hide menu bar icon"
+- Rectangle → Settings → "Hide menu bar icon"
 
 ### Ice (Menu Bar Organizer)
 
-Open Ice.app and follow setup prompts.
+1. Open Ice.app and follow setup prompts
+2. General → Set **"Ice icon"** to **Ellipsis**
+3. General → Enable **"Use the Ice Bar"**
 
-**Configure:**
-- General → Enable **"Launch at login"**
-- General → Set **"Ice icon"** to **Ellipsis**
-- General → Enable **"Use the Ice Bar"**
+### Maccy
+
+1. Preferences → Appearance → Set **"Popup at"** preference
+2. System Settings → Notifications → Enable for Maccy
 
 ### Chrome
 
@@ -320,19 +240,31 @@ matches:
 EOF
 ```
 
-Grant accessibility permissions when prompted.
+---
+
+## 7. Install Dev Runtimes
+
+```bash
+mise install
+```
+
+**Verify:**
+
+```bash
+mise current
+node --version
+python --version
+```
 
 ---
 
-## 10. Configure xcode-select
+## 8. Configure xcode-select
 
-By now Xcode.app should have finished downloading and installing. You should run
+By now Xcode.app should have finished downloading and installing.
 
 ```bash
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 ```
-
-for reasons that are not totally clear to me.
 
 **Verify:**
 
@@ -345,7 +277,7 @@ If Xcode isn't installed yet, skip this and come back later.
 
 ---
 
-## 11. Final Checks
+## 9. Final Checks
 
 ### Restart Terminal
 
@@ -364,18 +296,64 @@ node --version && python --version && bun --version
 
 # Chezmoi
 chezmoi doctor
-
-# 1Password CLI
-op account get
 ```
 
-### Launch on Login
+---
 
-Verify these are set to launch on login (search "Login Items & Extensions" in System Preferences):
-- ✅ Ice (in app settings)
-- ✅ Maccy (in app settings)
-- ✅ Hyperkey (script sets this)
-- ✅ Rectangle (prompts on first run)
-- ✅ CleanShot (prompts on first run)
-- ✅ Espanso (manually add)
-- ✅ Amphetamine (if laptop)
+## Troubleshooting
+
+### Preferences Not Applied
+
+Run with verbose output to see what's happening:
+
+```bash
+python3 ~/.local/share/chezmoi/utils/macos-apply-defaults.py ~/.local/share/chezmoi/macos/defaults/ -vv
+```
+
+Dry-run mode shows what would change without applying:
+
+```bash
+python3 ~/.local/share/chezmoi/utils/macos-apply-defaults.py ~/.local/share/chezmoi/macos/defaults/ --dry-run -v
+```
+
+### Default Apps Not Set
+
+Ensure `duti` is installed:
+
+```bash
+brew install duti
+chezmoi apply
+```
+
+### App Settings Reset
+
+Some apps (especially sandboxed ones) may reset preferences on update. Re-run:
+
+```bash
+chezmoi apply
+```
+
+### Adding New App Preferences
+
+Create a new TOML file in `macos/defaults/`:
+
+```toml
+description = "My App"
+kill = ["MyApp"]  # Process to restart after changes
+
+[data."com.example.myapp"]
+SomeSetting = true
+AnotherSetting = "value"
+```
+
+Find the domain name with:
+
+```bash
+defaults domains | tr ',' '\n' | grep -i myapp
+```
+
+Read current settings with:
+
+```bash
+defaults read com.example.myapp
+```

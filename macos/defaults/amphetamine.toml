@@ -1,0 +1,15 @@
+# Amphetamine - Keep your Mac awake
+# https://apps.apple.com/us/app/amphetamine/id937984704
+#
+# Manual steps (laptop only):
+# - Ensure "Start session when Amphetamine launches" is configured as desired
+# - Add to Login Items if needed (System Settings > General > Login Items)
+
+description = "Amphetamine"
+
+[data."com.if.Amphetamine"]
+"Show Welcome Window" = false
+"Icon Style" = 6
+"Lower Icon Opacity" = true
+"Hide Dock Icon" = true
+

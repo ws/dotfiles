@@ -1,0 +1,9 @@
+description = "General"
+kill = ["Dock", "Finder", "SystemUIServer"]
+
+[data."com.apple.desktopservices"]
+DSDontWriteNetworkStores = true  # Disable .DS_Store on network drives
+DSDontWriteUSBStores = true  # Disable .DS_Store on USB drives
+
+[data.NSGlobalDomain]
+NSDocumentSaveNewDocumentsToCloud = false  # Save dialog should open to disk, not iCloud

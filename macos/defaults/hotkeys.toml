@@ -1,0 +1,14 @@
+description = "Hotkeys"
+kill = ["SystemUIServer"]
+
+[data."com.apple.symbolichotkeys".AppleSymbolicHotKeys]
+
+# Disable screenshot shortcuts (I use CleanShot X)
+"28" = { enabled = false }   # ⌘⇧3 full screen
+"29" = { enabled = false }   # ⌘⇧4 selection
+"30" = { enabled = false }   # ⌘⇧3 → clipboard
+"31" = { enabled = false }   # ⌘⇧4 → clipboard
+"184" = { enabled = false }  # ⌘⇧5 toolbar
+
+# Disable Spotlight shortcuts (trying Raycast)
+"64" = { enabled = false }   # ⌘Space Spotlight search

@@ -1,0 +1,49 @@
+# Default applications for macOS
+# Uses duti under the hood to set file type associations
+
+[apps.editor]
+bundle_id = "com.microsoft.VSCode"
+name = "Visual Studio Code"
+extensions = [
+    # JavaScript/TypeScript (bun, deno, node)
+    "js", "ts", "jsx", "tsx",
+    "mjs", "mts", "cjs", "cts",  # ES/CommonJS modules
+    # Web frameworks
+    "vue", "svelte", "astro",
+    # Templates
+    "hbs", "ejs", "pug",
+    # Styles
+    "css", "scss", "sass", "less", "styl",
+    # Data formats
+    "json", "jsonc", "json5",
+    "yaml", "yml", "xml", "toml", "ini", "csv",
+    # Documentation
+    "md", "mdx", "txt", "rst",
+    # Shell/scripting
+    "sh", "bash", "zsh", "fish",
+    # Python (python, uv)
+    "py", "pyi", "pyx", "pyw",
+    # Ruby
+    "rb", "erb", "rake", "gemspec", "ru",
+    # Rust
+    "rs",
+    # Go
+    "go", "mod", "sum",
+    # Lua
+    "lua",
+    # Systems programming
+    "c", "cpp", "cc", "cxx", "h", "hpp", "hxx",
+    # Other languages
+    "java", "kt", "php", "sql",
+    # GraphQL
+    "graphql", "gql",
+    # Config/dotfiles
+    "dockerfile", "gitignore", "gitattributes", "editorconfig", "env",
+    # Misc
+    "log", "diff", "patch",
+]
+
+[apps.browser]
+bundle_id = "com.google.Chrome"
+name = "Google Chrome"
+urls = ["http", "https"]
